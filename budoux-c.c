@@ -529,7 +529,7 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
   return boundaries;
 failed:
   if (boundaries) {
-    budouxc_boundaries_free(model, boundaries);
+    budouxc_boundaries_destroy(model, boundaries);
   }
   if (temp) {
     model->allocators.fn_free(temp, model->allocators.user_data);
@@ -537,8 +537,8 @@ failed:
   return NULL;
 }
 
-void BUDOUXC_DECLSPEC budouxc_boundaries_free(struct budouxc *const model,
-                                              struct budouxc_boundaries *const boundaries) {
+void BUDOUXC_DECLSPEC budouxc_boundaries_destroy(struct budouxc *const model,
+                                                 struct budouxc_boundaries *const boundaries) {
   if (!model || !boundaries) {
     return;
   }

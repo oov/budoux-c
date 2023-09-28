@@ -120,9 +120,9 @@ struct budouxc_boundaries {
  * @param sentence_len Length of the sentence in code points.
  * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
  * @return Pointer to a struct containing an array of indices into the sentence, representing the word boundaries. The
- * struct is owned by the caller and must be freed with `budouxc_boundaries_free`.
+ * struct is owned by the caller and must be freed with `budouxc_boundaries_destroy`.
  *
- * @see budouxc_boundaries_free
+ * @see budouxc_boundaries_destroy
  */
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf32(struct budouxc *const model,
                                                                            char32_t const *const sentence,
@@ -139,9 +139,9 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf32(struc
  * @param sentence_len Length of the sentence in bytes.
  * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
  * @return Pointer to a struct containing an array of indices into the sentence, representing the word boundaries. The
- * struct is owned by the caller and must be freed with `budouxc_boundaries_free`.
+ * struct is owned by the caller and must be freed with `budouxc_boundaries_destroy`.
  *
- * @see budouxc_boundaries_free
+ * @see budouxc_boundaries_destroy
  */
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct budouxc *const model,
                                                                           char const *const sentence,
@@ -161,4 +161,5 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
  * @see budouxc_parse_boundaries_utf8
  * @see budouxc_parse_boundaries_utf32
  */
-void BUDOUXC_DECLSPEC budouxc_boundaries_free(struct budouxc *const model, struct budouxc_boundaries *const boundaries);
+void BUDOUXC_DECLSPEC budouxc_boundaries_destroy(struct budouxc *const model,
+                                                 struct budouxc_boundaries *const boundaries);

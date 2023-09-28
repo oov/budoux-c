@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
 cleanup:
   if (boundaries) {
-    budouxc_boundaries_free(model, boundaries);
+    budouxc_boundaries_destroy(model, boundaries);
   }
   budouxc_destroy(model);
   return 0;
