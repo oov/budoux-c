@@ -99,6 +99,12 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hant(struct budouxc_al
  */
 void BUDOUXC_DECLSPEC budouxc_destroy(struct budouxc *const model);
 
+/**
+ * @brief Structure representing the boundaries of a string segmentation
+ *
+ * indices: an array storing the indices of the segmentation boundaries
+ * n: the number of segmentation boundaries
+ */
 struct budouxc_boundaries {
   size_t *indices;
   size_t n;
