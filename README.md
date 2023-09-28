@@ -26,7 +26,7 @@ Usage
 -----
 
 ```c
-#include "budoux-c.h"
+#include <budoux-c.h>
 
 #include <stdio.h>
 #include <string.h>
