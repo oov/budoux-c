@@ -15,8 +15,6 @@
 
 /**
  * @brief Struct containing memory allocation functions to be used by budoux.
- *
- * This struct contains pointers to functions that are used by budoux for memory allocation.
  */
 struct budouxc_allocators {
   void *(*fn_realloc)(void *ptr, size_t size, void *user_data);
@@ -26,8 +24,6 @@ struct budouxc_allocators {
 
 /**
  * @brief Initializes a budoux model with the given JSON.
- *
- * This function initializes a budoux model with the given JSON.
  *
  * @param allocators Pointer to the struct containing the memory allocation functions to be used. If NULL, default
  * implementation will be used.
@@ -46,8 +42,6 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init(struct budouxc_allocators const *c
 /**
  * @brief Initializes a budoux model with the embedded Japanese model.
  *
- * This function initializes a budoux model with the Japanese model that is embedded in the library.
- *
  * @param allocators Pointer to the struct containing the memory allocation functions to be used. If NULL, default
  * implementation will be used.
  * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
@@ -61,8 +55,6 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_ja(struct budouxc_allocat
 /**
  * @brief Initializes a budoux model with the embedded Simplified Chinese model.
  *
- * This function initializes a budoux model with the Simplified Chinese model that is embedded in the library.
- *
  * @param allocators Pointer to the struct containing the memory allocation functions to be used. If NULL, default
  * implementation will be used.
  * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
@@ -75,8 +67,6 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hans(struct budouxc_al
 
 /**
  * @brief Initializes a budoux model with the embedded Traditional Chinese model.
- *
- * This function initializes a budoux model with the Traditional Chinese model that is embedded in the library.
  *
  * @param allocators Pointer to the struct containing the memory allocation functions to be used. If NULL, default
  * implementation will be used.
@@ -92,8 +82,6 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hant(struct budouxc_al
 
 /**
  * @brief Destroys a budoux model and frees all associated memory.
- *
- * This function destroys a budoux model and frees all memory that was allocated for it.
  *
  * @param model Pointer to the budoux model to be destroyed.
  */
@@ -113,8 +101,6 @@ struct budouxc_boundaries {
 /**
  * @brief Parses a sentence and returns the word boundaries.
  *
- * This function parses a sentence and returns the word boundaries as an array of indices into the sentence.
- *
  * @param model Pointer to the budoux model to be used for parsing.
  * @param sentence Pointer to the sentence to be parsed, as an array of UTF-32 code points.
  * @param sentence_len Length of the sentence in code points.
@@ -132,8 +118,6 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf32(struc
 /**
  * @brief Parses a sentence and returns the word boundaries.
  *
- * This function parses a sentence and returns the word boundaries as an array of indices into the sentence.
- *
  * @param model Pointer to the budoux model to be used for parsing.
  * @param sentence Pointer to the sentence to be parsed, as a UTF-8 string.
  * @param sentence_len Length of the sentence in bytes.
@@ -150,9 +134,6 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
 
 /**
  * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_utf8` or
- * `budouxc_parse_boundaries_utf32`.
- *
- * This function frees an array of word boundaries that was returned by `budouxc_parse_boundaries_utf8` or
  * `budouxc_parse_boundaries_utf32`.
  *
  * @param model Pointer to the budoux model that was used for parsing.
