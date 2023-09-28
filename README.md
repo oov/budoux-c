@@ -87,9 +87,7 @@ Credits
 
 BudouX-C is made possible by the following open source softwares.
 
-### BudouX
-
-https://github.com/google/budoux
+### [BudouX](https://github.com/google/budoux)
 
 <details>
 <summary>Apache License Version 2.0</summary>
@@ -299,12 +297,9 @@ https://github.com/google/budoux
 ```
 </details>
 
-### hashmap.c
+### [hashmap.c](https://github.com/tidwall/hashmap.c)
 
-https://github.com/tidwall/hashmap.c
-
-NOTICE: This library used a modified version of hashmap.c.  
-        https://github.com/oov/hashmap.c/tree/simplify
+NOTICE: This library used a [modified version of hashmap.c](https://github.com/oov/hashmap.c/tree/simplify).
 
 <details>
 <summary>MIT License</summary>
@@ -333,9 +328,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 </details>
 
-### json-parser
-
-https://github.com/json-parser/json-parser
+### [json-parser](https://github.com/json-parser/json-parser)
 
 <details>
 <summary>BSD 2-Clause "Simplified" License</summary>
