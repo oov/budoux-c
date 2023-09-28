@@ -29,7 +29,7 @@ jobs:
             mingw-w64-${{ matrix.arch }}-clang
             mingw-w64-${{ matrix.arch }}-compiler-rt
             mingw-w64-${{ matrix.arch }}-lld
-            mingw-w64-${{ matrix.arch }}-vim
+            vim
       - name: Build
         shell: msys2 {0}
         run: |
