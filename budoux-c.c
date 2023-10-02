@@ -400,100 +400,109 @@ failed:
   return NULL;
 }
 
-static inline void get_unigram_score(int32_t *score, struct hashmap *const map, char32_t const k0) {
-  struct unigram const *const item = hashmap_get(map, &(struct unigram const){.key = {k0}});
-  if (item) {
-    *score += item->value;
-  }
-}
+#define IMPL_PARSE(bits)                                                                                               \
+  static inline void get_unigram_score_char##bits(                                                                     \
+      int32_t *score, struct hashmap *const map, char##bits##_t const k0) {                                            \
+    struct unigram const *const item = hashmap_get(map, &(struct unigram const){.key = {k0}});                         \
+    if (item) {                                                                                                        \
+      *score += item->value;                                                                                           \
+    }                                                                                                                  \
+  }                                                                                                                    \
+  static inline void get_bigram_score_char##bits(                                                                      \
+      int32_t *score, struct hashmap *const map, char##bits##_t const k0, char##bits##_t const k1) {                   \
+    struct bigram const *const item = hashmap_get(map, &(struct bigram const){.key = {k0, k1}});                       \
+    if (item) {                                                                                                        \
+      *score += item->value;                                                                                           \
+    }                                                                                                                  \
+  }                                                                                                                    \
+  static inline void get_trigram_score_char##bits(int32_t *score,                                                      \
+                                                  struct hashmap *const map,                                           \
+                                                  char##bits##_t const k0,                                             \
+                                                  char##bits##_t const k1,                                             \
+                                                  char##bits##_t const k2) {                                           \
+    struct trigram const *const item = hashmap_get(map, &(struct trigram const){.key = {k0, k1, k2}});                 \
+    if (item) {                                                                                                        \
+      *score += item->value;                                                                                           \
+    }                                                                                                                  \
+  }                                                                                                                    \
+  struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf##bits(                                      \
+      struct budouxc *const model, char##bits##_t const *const sentence, size_t const sentence_len, char *error128) {  \
+    size_t *r = NULL;                                                                                                  \
+    size_t r_len = 0;                                                                                                  \
+    size_t r_cap = 0;                                                                                                  \
+                                                                                                                       \
+    FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);                                       \
+    for (size_t i = 1; i < sentence_len; ++i) {                                                                        \
+      int32_t score = 0;                                                                                               \
+      if (i >= 3) {                                                                                                    \
+        get_unigram_score_char##bits(&score, model->uni[0], sentence[i - 3]);                                          \
+      }                                                                                                                \
+      if (i >= 2) {                                                                                                    \
+        get_unigram_score_char##bits(&score, model->uni[1], sentence[i - 2]);                                          \
+      }                                                                                                                \
+      get_unigram_score_char##bits(&score, model->uni[2], sentence[i - 1]);                                            \
+      get_unigram_score_char##bits(&score, model->uni[3], sentence[i]);                                                \
+      if (i + 1 < sentence_len) {                                                                                      \
+        get_unigram_score_char##bits(&score, model->uni[4], sentence[i + 1]);                                          \
+      }                                                                                                                \
+      if (i + 2 < sentence_len) {                                                                                      \
+        get_unigram_score_char##bits(&score, model->uni[5], sentence[i + 2]);                                          \
+      }                                                                                                                \
+                                                                                                                       \
+      if (i >= 2) {                                                                                                    \
+        get_bigram_score_char##bits(&score, model->bi[0], sentence[i - 2], sentence[i - 1]);                           \
+      }                                                                                                                \
+      get_bigram_score_char##bits(&score, model->bi[1], sentence[i - 1], sentence[i]);                                 \
+      if (i + 1 < sentence_len) {                                                                                      \
+        get_bigram_score_char##bits(&score, model->bi[2], sentence[i], sentence[i + 1]);                               \
+      }                                                                                                                \
+                                                                                                                       \
+      if (i >= 3) {                                                                                                    \
+        get_trigram_score_char##bits(&score, model->tri[0], sentence[i - 3], sentence[i - 2], sentence[i - 1]);        \
+      }                                                                                                                \
+      if (i >= 2) {                                                                                                    \
+        get_trigram_score_char##bits(&score, model->tri[1], sentence[i - 2], sentence[i - 1], sentence[i]);            \
+      }                                                                                                                \
+      if (i + 1 < sentence_len) {                                                                                      \
+        get_trigram_score_char##bits(&score, model->tri[2], sentence[i - 1], sentence[i], sentence[i + 1]);            \
+      }                                                                                                                \
+      if (i + 2 < sentence_len) {                                                                                      \
+        get_trigram_score_char##bits(&score, model->tri[3], sentence[i], sentence[i + 1], sentence[i + 2]);            \
+      }                                                                                                                \
+                                                                                                                       \
+      if (base_score + (FLOAT_TYPE)(score) > 0) {                                                                      \
+        if (r_len == r_cap) {                                                                                          \
+          size_t const newcap = r_cap ? r_cap * 2 : 16;                                                                \
+          size_t *newbuf = model->allocators.fn_realloc(                                                               \
+              r, newcap * sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);            \
+          if (!newbuf) {                                                                                               \
+            strcpy(error128, "Out of memory");                                                                         \
+            goto failed;                                                                                               \
+          }                                                                                                            \
+          r = newbuf;                                                                                                  \
+          r_cap = newcap;                                                                                              \
+        }                                                                                                              \
+        r[r_len++] = i;                                                                                                \
+      }                                                                                                                \
+    }                                                                                                                  \
+    struct budouxc_boundaries *ret = (void *)(r + r_cap);                                                              \
+    ret->indices = r;                                                                                                  \
+    ret->n = r_len;                                                                                                    \
+    return ret;                                                                                                        \
+  failed:                                                                                                              \
+    if (r) {                                                                                                           \
+      model->allocators.fn_free(r, model->allocators.user_data);                                                       \
+    }                                                                                                                  \
+    return NULL;                                                                                                       \
+  }                                                                                                                    \
+  struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf##bits(                                      \
+      struct budouxc *const model, char##bits##_t const *const sentence, size_t const sentence_len, char *error128)
 
-static inline void get_bigram_score(int32_t *score, struct hashmap *const map, char32_t const k0, char32_t const k1) {
-  struct bigram const *const item = hashmap_get(map, &(struct bigram const){.key = {k0, k1}});
-  if (item) {
-    *score += item->value;
-  }
-}
-
-static inline void
-get_trigram_score(int32_t *score, struct hashmap *const map, char32_t const k0, char32_t const k1, char32_t const k2) {
-  struct trigram const *const item = hashmap_get(map, &(struct trigram const){.key = {k0, k1, k2}});
-  if (item) {
-    *score += item->value;
-  }
-}
-
-struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf32(struct budouxc *const model,
-                                                                           char32_t const *const sentence,
-                                                                           size_t const sentence_len,
-                                                                           char *error128) {
-  size_t *r = NULL;
-  size_t r_len = 0;
-  size_t r_cap = 0;
-
-  FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
-  for (size_t i = 1; i < sentence_len; ++i) {
-    int32_t score = 0;
-    if (i >= 3) {
-      get_unigram_score(&score, model->uni[0], sentence[i - 3]);
-    }
-    if (i >= 2) {
-      get_unigram_score(&score, model->uni[1], sentence[i - 2]);
-    }
-    get_unigram_score(&score, model->uni[2], sentence[i - 1]);
-    get_unigram_score(&score, model->uni[3], sentence[i]);
-    if (i + 1 < sentence_len) {
-      get_unigram_score(&score, model->uni[4], sentence[i + 1]);
-    }
-    if (i + 2 < sentence_len) {
-      get_unigram_score(&score, model->uni[5], sentence[i + 2]);
-    }
-
-    if (i >= 2) {
-      get_bigram_score(&score, model->bi[0], sentence[i - 2], sentence[i - 1]);
-    }
-    get_bigram_score(&score, model->bi[1], sentence[i - 1], sentence[i]);
-    if (i + 1 < sentence_len) {
-      get_bigram_score(&score, model->bi[2], sentence[i], sentence[i + 1]);
-    }
-
-    if (i >= 3) {
-      get_trigram_score(&score, model->tri[0], sentence[i - 3], sentence[i - 2], sentence[i - 1]);
-    }
-    if (i >= 2) {
-      get_trigram_score(&score, model->tri[1], sentence[i - 2], sentence[i - 1], sentence[i]);
-    }
-    if (i + 1 < sentence_len) {
-      get_trigram_score(&score, model->tri[2], sentence[i - 1], sentence[i], sentence[i + 1]);
-    }
-    if (i + 2 < sentence_len) {
-      get_trigram_score(&score, model->tri[3], sentence[i], sentence[i + 1], sentence[i + 2]);
-    }
-
-    if (base_score + (FLOAT_TYPE)(score) > 0) {
-      if (r_len == r_cap) {
-        size_t const newcap = r_cap ? r_cap * 2 : 16;
-        size_t *newbuf = model->allocators.fn_realloc(
-            r, newcap * sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);
-        if (!newbuf) {
-          strcpy(error128, "Out of memory");
-          goto failed;
-        }
-        r = newbuf;
-        r_cap = newcap;
-      }
-      r[r_len++] = i;
-    }
-  }
-  struct budouxc_boundaries *ret = (void *)(r + r_cap);
-  ret->indices = r;
-  ret->n = r_len;
-  return ret;
-failed:
-  if (r) {
-    model->allocators.fn_free(r, model->allocators.user_data);
-  }
-  return NULL;
-}
+// I think it is not correct as an implementation to ignore surrogate pairs,
+// but it seems that BudouX's JavaScript implementation does not consider surrogate pairs.
+// Therefore, in this implementation, we will also ignore surrogate pairs.
+IMPL_PARSE(16);
+IMPL_PARSE(32);
 
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct budouxc *const model,
                                                                           char const *const sentence,
