@@ -505,8 +505,7 @@ IMPL_PARSE(16);
 IMPL_PARSE(32);
 
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
-                                                                              char32_t (*get_char)(size_t const index,
-                                                                                                   void *userdata),
+                                                                              char32_t (*get_char)(void *userdata),
                                                                               void *userdata,
                                                                               char *error128) {
   size_t *r = NULL;
@@ -517,7 +516,7 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(st
   size_t sentence_len = SIZE_MAX;
 
   for (size_t i = 0; i < 5; ++i) {
-    char32_t const ch = get_char(i, userdata);
+    char32_t const ch = get_char(userdata);
     buffer[i] = ch;
     if (ch == 0) {
       sentence_len = i + 1;
@@ -528,7 +527,7 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(st
   FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
   for (size_t i = 1; i < sentence_len; ++i) {
     if (i + 2 < sentence_len) {
-      char32_t const ch = get_char(i + 2, userdata);
+      char32_t const ch = get_char(userdata);
       buffer[(i + 2) & 7] = ch;
       if (ch == 0) {
         sentence_len = i + 3;
