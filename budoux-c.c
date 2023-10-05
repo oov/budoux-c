@@ -504,6 +504,100 @@ failed:
 IMPL_PARSE(16);
 IMPL_PARSE(32);
 
+struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
+                                                                              char32_t (*get_char)(size_t const index),
+                                                                              char *error128) {
+  size_t *r = NULL;
+  size_t r_len = 0;
+  size_t r_cap = 0;
+
+  char32_t buffer[8] = {0};
+  size_t sentence_len = SIZE_MAX;
+
+  for (size_t i = 0; i < 5; ++i) {
+    char32_t const ch = get_char(i);
+    buffer[i] = ch;
+    if (ch == 0) {
+      sentence_len = i + 1;
+      break;
+    }
+  }
+
+  FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
+  for (size_t i = 1; i < sentence_len; ++i) {
+    if (i + 2 < sentence_len) {
+      char32_t const ch = get_char(i + 2);
+      buffer[(i + 2) & 7] = ch;
+      if (ch == 0) {
+        sentence_len = i + 3;
+      }
+    } else {
+      buffer[(i + 2) & 7] = 0;
+    }
+
+    int32_t score = 0;
+    if (i >= 3) {
+      get_unigram_score_char32(&score, model->uni[0], buffer[(i - 3) & 7]);
+    }
+    if (i >= 2) {
+      get_unigram_score_char32(&score, model->uni[1], buffer[(i - 2) & 7]);
+    }
+    get_unigram_score_char32(&score, model->uni[2], buffer[(i - 1) & 7]);
+    get_unigram_score_char32(&score, model->uni[3], buffer[i & 7]);
+    if (i + 1 < sentence_len) {
+      get_unigram_score_char32(&score, model->uni[4], buffer[(i + 1) & 7]);
+    }
+    if (i + 2 < sentence_len) {
+      get_unigram_score_char32(&score, model->uni[5], buffer[(i + 2) & 7]);
+    }
+
+    if (i >= 2) {
+      get_bigram_score_char32(&score, model->bi[0], buffer[(i - 2) & 7], buffer[(i - 1) & 7]);
+    }
+    get_bigram_score_char32(&score, model->bi[1], buffer[(i - 1) & 7], buffer[i & 7]);
+    if (i + 1 < sentence_len) {
+      get_bigram_score_char32(&score, model->bi[2], buffer[i & 7], buffer[(i + 1) & 7]);
+    }
+
+    if (i >= 3) {
+      get_trigram_score_char32(&score, model->tri[0], buffer[(i - 3) & 7], buffer[(i - 2) & 7], buffer[(i - 1) & 7]);
+    }
+    if (i >= 2) {
+      get_trigram_score_char32(&score, model->tri[1], buffer[(i - 2) & 7], buffer[(i - 1) & 7], buffer[i & 7]);
+    }
+    if (i + 1 < sentence_len) {
+      get_trigram_score_char32(&score, model->tri[2], buffer[(i - 1) & 7], buffer[i & 7], buffer[(i + 1) & 7]);
+    }
+    if (i + 2 < sentence_len) {
+      get_trigram_score_char32(&score, model->tri[3], buffer[i & 7], buffer[(i + 1) & 7], buffer[(i + 2) & 7]);
+    }
+
+    if (base_score + (FLOAT_TYPE)(score) > 0) {
+      if (r_len == r_cap) {
+        size_t const newcap = r_cap ? r_cap * 2 : 16;
+        size_t *newbuf = model->allocators.fn_realloc(
+            r, newcap * sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);
+        if (!newbuf) {
+          strcpy(error128, "Out of memory");
+          goto failed;
+        }
+        r = newbuf;
+        r_cap = newcap;
+      }
+      r[r_len++] = i;
+    }
+  }
+  struct budouxc_boundaries *ret = (void *)(r + r_cap);
+  ret->indices = r;
+  ret->n = r_len;
+  return ret;
+failed:
+  if (r) {
+    model->allocators.fn_free(r, model->allocators.user_data);
+  }
+  return NULL;
+}
+
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct budouxc *const model,
                                                                           char const *const sentence,
                                                                           size_t const sentence_len,

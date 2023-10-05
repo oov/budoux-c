@@ -150,6 +150,21 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
                                                                           char *error128);
 
 /**
+ * @brief Parses a sentence and returns the word boundaries.
+ *
+ * @param model Pointer to the budoux model to be used for parsing.
+ * @param get_char Callback function that gets a character from the input sentence and returns 0 at the end.
+ * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
+ * @return Pointer to a struct containing an array of indices into the sentence, representing the word boundaries. The
+ * struct is owned by the caller and must be freed with `budouxc_boundaries_destroy`.
+ *
+ * @see budouxc_boundaries_destroy
+ */
+struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
+                                                                              char32_t (*get_char)(size_t const index),
+                                                                              char *error128);
+
+/**
  * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_utf8` or
  * `budouxc_parse_boundaries_utf32`.
  *
