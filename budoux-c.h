@@ -161,10 +161,11 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
  *
  * @see budouxc_boundaries_destroy
  */
-struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
-                                                                              char32_t (*get_char)(void *userdata),
-                                                                              void *userdata,
-                                                                              char *error128);
+struct budouxc_boundaries *BUDOUXC_DECLSPEC
+budouxc_parse_boundaries_callback(struct budouxc *const model,
+                                  char32_t (*get_char)(struct budouxc_boundaries const *boundaries, void *userdata),
+                                  void *userdata,
+                                  char *error128);
 
 /**
  * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_utf8` or
