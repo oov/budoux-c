@@ -168,14 +168,15 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
                                   char *error128);
 
 /**
- * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_utf8` or
- * `budouxc_parse_boundaries_utf32`.
+ * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_xxx`.
  *
  * @param model Pointer to the budoux model that was used for parsing.
  * @param boundaries Pointer to the struct containing the array of word boundaries to be freed.
  *
  * @see budouxc_parse_boundaries_utf8
+ * @see budouxc_parse_boundaries_utf16
  * @see budouxc_parse_boundaries_utf32
+ * @see budouxc_parse_boundaries_callback
  */
 void BUDOUXC_DECLSPEC budouxc_boundaries_destroy(struct budouxc *const model,
                                                  struct budouxc_boundaries *const boundaries);
