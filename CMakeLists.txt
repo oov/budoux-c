@@ -5,6 +5,7 @@ option(USE_ADDRESS_SANITIZER "use address sanitizer" OFF)
 option(BUDOUXC_EMBED_MODELS "embed pretrained models" ON)
 
 project(budouxc C)
+enable_testing()
 
 if(FORMAT_SOURCES)
   file(GLOB sources LIST_DIRECTORIES false CONFIGURE_DEPENDS "*.h" "*.c")
@@ -112,4 +113,7 @@ PRIVATE
 if(BUDOUXC_EMBED_MODELS)
   add_executable(budouxc_example example.c)
   target_link_libraries(budouxc_example budouxc)
+  add_executable(test_budouxc_callback test_callback.c)
+  target_link_libraries(test_budouxc_callback budouxc)
+  add_test(NAME test_budouxc_callback COMMAND test_budouxc_callback)
 endif()
