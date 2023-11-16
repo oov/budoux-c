@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   (void)argv;
 
   char error[128] = {0};
-  bool ok = false;
+  bool ok = true;
   struct budouxc *model = NULL;
   struct budouxc_boundaries *boundaries_golden = NULL;
   struct budouxc_boundaries *boundaries = NULL;
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
     boundaries_golden = budouxc_parse_boundaries_utf16(model, (char16_t const *)sentence, wcslen(sentence), error);
     if (!boundaries_golden) {
       printf("budouxc_parse_boundaries_utf16 failed: %s\n", error);
+      ok = false;
       goto cleanup;
     }
     break;
@@ -44,19 +45,21 @@ int main(int argc, char *argv[]) {
     boundaries_golden = budouxc_parse_boundaries_utf32(model, (char32_t const *)sentence, wcslen(sentence), error);
     if (!boundaries_golden) {
       printf("budouxc_parse_boundaries_utf32 failed: %s\n", error);
+      ok = false;
       goto cleanup;
     }
     break;
   default:
     printf("unsupported wchar_t size\n");
+    ok = false;
     goto cleanup;
   }
 
   // Parse the boundaries of the sentence using the model.
-  // boundaries = budouxc_parse_boundaries_utf16(model, sentence, u16len(sentence), error);
   boundaries = budouxc_parse_boundaries_callback(model, get_char, &(size_t){0}, error);
   if (!boundaries) {
     printf("budouxc_parse_boundaries_callback failed: %s\n", error);
+    ok = false;
     goto cleanup;
   }
 
@@ -64,16 +67,15 @@ int main(int argc, char *argv[]) {
   if (boundaries->n != boundaries_golden->n) {
     printf("number of boundaries mismatch\n");
     printf("  expected: %zu, got: %zu\n", boundaries_golden->n, boundaries->n);
-    goto cleanup;
+    ok = false;
   }
-  for (size_t i = 0; i < boundaries->n; ++i) {
+  for (size_t i = 0; i < boundaries_golden->n; ++i) {
     if (boundaries->indices[i] != boundaries_golden->indices[i]) {
       printf("boundary mismatch at %zu\n", i);
       printf("  expected: %zu, got: %zu\n", boundaries_golden->indices[i], boundaries->indices[i]);
-      goto cleanup;
+      ok = false;
     }
   }
-  ok = true;
 cleanup:
   if (boundaries) {
     budouxc_boundaries_destroy(model, boundaries);

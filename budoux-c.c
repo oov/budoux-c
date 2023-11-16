@@ -531,7 +531,7 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
       char32_t const ch = get_char(&(struct budouxc_boundaries){.indices = r, .n = r_len}, userdata);
       buffer[(i + 5) & 7] = ch;
       if (ch == 0) {
-        sentence_len = i + 3;
+        sentence_len = i + 5;
       }
     } else {
       buffer[(i + 5) & 7] = 0;
