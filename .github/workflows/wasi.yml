@@ -29,4 +29,4 @@ jobs:
           export WASISDK="$(pwd)/wasi-sdk-20.0"
           cd ..
           rm -f CmakeCache.txt && CC="${WASISDK}/bin/clang --sysroot=${WASISDK}/share/wasi-sysroot" cmake -S .. -B . --preset default -DCMAKE_C_COMPILER="" -DFORMAT_SOURCES=ON -DCMAKE_INSTALL_PREFIX=local && \
-          cmake --build .
+          cmake --build . && ctest --output-on-failure

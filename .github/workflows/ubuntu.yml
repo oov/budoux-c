@@ -21,4 +21,4 @@ jobs:
           mkdir -p build
           cd build
           rm -f CmakeCache.txt && cmake -S .. -B . --preset default -DFORMAT_SOURCES=ON -DCMAKE_INSTALL_PREFIX=local && \
-          cmake --build .
+          cmake --build . && ctest --output-on-failure
