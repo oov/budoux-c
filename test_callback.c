@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
   // Compare the boundaries with the golden data.
   if (boundaries->n != boundaries_golden->n) {
     printf("number of boundaries mismatch\n");
+    printf("  expected: %zu, got: %zu\n", boundaries_golden->n, boundaries->n);
     goto cleanup;
   }
   for (size_t i = 0; i < boundaries->n; ++i) {
