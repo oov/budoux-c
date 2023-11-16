@@ -516,7 +516,7 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
   char32_t buffer[8] = {0};
   size_t sentence_len = SIZE_MAX;
 
-  for (size_t i = 0; i < 5; ++i) {
+  for (size_t i = 0; i < 6; ++i) {
     char32_t const ch = get_char(&(struct budouxc_boundaries){.indices = r, .n = r_len}, userdata);
     buffer[i] = ch;
     if (ch == 0) {
@@ -527,24 +527,24 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
 
   FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
   for (size_t i = 1; i < sentence_len; ++i) {
-    if (i + 2 < sentence_len) {
+    if (i + 5 < sentence_len) {
       char32_t const ch = get_char(&(struct budouxc_boundaries){.indices = r, .n = r_len}, userdata);
-      buffer[(i + 2) & 7] = ch;
+      buffer[(i + 5) & 7] = ch;
       if (ch == 0) {
         sentence_len = i + 3;
       }
     } else {
-      buffer[(i + 2) & 7] = 0;
+      buffer[(i + 5) & 7] = 0;
     }
 
     int32_t score = 0;
     if (i >= 3) {
-      get_unigram_score_char32(&score, model->uni[0], buffer[(i - 3) & 7]);
+      get_unigram_score_char32(&score, model->uni[0], buffer[(i + 5) & 7]);
     }
     if (i >= 2) {
-      get_unigram_score_char32(&score, model->uni[1], buffer[(i - 2) & 7]);
+      get_unigram_score_char32(&score, model->uni[1], buffer[(i + 6) & 7]);
     }
-    get_unigram_score_char32(&score, model->uni[2], buffer[(i - 1) & 7]);
+    get_unigram_score_char32(&score, model->uni[2], buffer[(i + 7) & 7]);
     get_unigram_score_char32(&score, model->uni[3], buffer[i & 7]);
     if (i + 1 < sentence_len) {
       get_unigram_score_char32(&score, model->uni[4], buffer[(i + 1) & 7]);
@@ -554,21 +554,21 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
     }
 
     if (i >= 2) {
-      get_bigram_score_char32(&score, model->bi[0], buffer[(i - 2) & 7], buffer[(i - 1) & 7]);
+      get_bigram_score_char32(&score, model->bi[0], buffer[(i + 6) & 7], buffer[(i + 7) & 7]);
     }
-    get_bigram_score_char32(&score, model->bi[1], buffer[(i - 1) & 7], buffer[i & 7]);
+    get_bigram_score_char32(&score, model->bi[1], buffer[(i + 7) & 7], buffer[i & 7]);
     if (i + 1 < sentence_len) {
       get_bigram_score_char32(&score, model->bi[2], buffer[i & 7], buffer[(i + 1) & 7]);
     }
 
     if (i >= 3) {
-      get_trigram_score_char32(&score, model->tri[0], buffer[(i - 3) & 7], buffer[(i - 2) & 7], buffer[(i - 1) & 7]);
+      get_trigram_score_char32(&score, model->tri[0], buffer[(i + 5) & 7], buffer[(i + 6) & 7], buffer[(i + 7) & 7]);
     }
     if (i >= 2) {
-      get_trigram_score_char32(&score, model->tri[1], buffer[(i - 2) & 7], buffer[(i - 1) & 7], buffer[i & 7]);
+      get_trigram_score_char32(&score, model->tri[1], buffer[(i + 6) & 7], buffer[(i + 7) & 7], buffer[i & 7]);
     }
     if (i + 1 < sentence_len) {
-      get_trigram_score_char32(&score, model->tri[2], buffer[(i - 1) & 7], buffer[i & 7], buffer[(i + 1) & 7]);
+      get_trigram_score_char32(&score, model->tri[2], buffer[(i + 7) & 7], buffer[i & 7], buffer[(i + 1) & 7]);
     }
     if (i + 2 < sentence_len) {
       get_trigram_score_char32(&score, model->tri[3], buffer[i & 7], buffer[(i + 1) & 7], buffer[(i + 2) & 7]);
