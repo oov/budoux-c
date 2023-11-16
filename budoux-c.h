@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <uchar.h>
 
@@ -150,24 +151,6 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
                                                                           char *error128);
 
 /**
- * @brief Parses a sentence and returns the word boundaries.
- *
- * @param model Pointer to the budoux model to be used for parsing.
- * @param get_char Callback function that gets a next character from the input sentence and returns 0 at the end.
- * @param userdata Pointer to user-defined data that will be passed to the get_char callback.
- * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
- * @return Pointer to a struct containing an array of indices into the sentence, representing the word boundaries. The
- * struct is owned by the caller and must be freed with `budouxc_boundaries_destroy`.
- *
- * @see budouxc_boundaries_destroy
- */
-struct budouxc_boundaries *BUDOUXC_DECLSPEC
-budouxc_parse_boundaries_callback(struct budouxc *const model,
-                                  char32_t (*get_char)(struct budouxc_boundaries const *boundaries, void *userdata),
-                                  void *userdata,
-                                  char *error128);
-
-/**
  * @brief Frees an array of word boundaries returned by `budouxc_parse_boundaries_xxx`.
  *
  * @param model Pointer to the budoux model that was used for parsing.
@@ -176,7 +159,21 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
  * @see budouxc_parse_boundaries_utf8
  * @see budouxc_parse_boundaries_utf16
  * @see budouxc_parse_boundaries_utf32
- * @see budouxc_parse_boundaries_callback
  */
 void BUDOUXC_DECLSPEC budouxc_boundaries_destroy(struct budouxc *const model,
                                                  struct budouxc_boundaries *const boundaries);
+
+/**
+ * @brief Parses a sentence and returns the word boundaries.
+ *
+ * @param model Pointer to the budoux model to be used for parsing.
+ * @param get_char Callback function that gets a next character from the input sentence and returns 0 at the end.
+ * @param add_boundary Callback function that adds a boundary at the specified position in the sentence.
+ * @param userdata Pointer to user-defined data that will be passed to the get_char/add_boundary callback.
+ * @return Returns true if the parsing was successful. If add_boundary returns false, it is considered an abort and the
+ * function returns false. There are no other failure conditions.
+ */
+bool BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
+                                                        char32_t (*get_char)(void *userdata),
+                                                        bool (*add_boundary)(size_t const boundary, void *userdata),
+                                                        void *userdata);

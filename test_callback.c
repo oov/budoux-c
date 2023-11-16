@@ -9,10 +9,27 @@ static wchar_t const sentence[] = L"私はその人を常に先生と呼んで�
                                   L"だからここでもただ先生と書くだけで本名は打ち明けない。\n"
                                   L"これは世間を憚かる遠慮というよりも、その方が私にとって自然だからである。";
 
-static char32_t get_char(struct budouxc_boundaries const *boundaries, void *userdata) {
-  (void)boundaries;
-  size_t *c = userdata;
-  return sentence[(*c)++];
+struct context {
+  size_t nch;
+  size_t nb;
+  struct budouxc_boundaries *golden;
+  bool correct;
+};
+
+static char32_t get_char(void *userdata) {
+  struct context *const c = userdata;
+  return sentence[c->nch++];
+}
+
+static bool add_boundary(size_t const boundary, void *userdata) {
+  struct context *const c = userdata;
+  size_t const b = c->nb++;
+  if (b < c->golden->n && boundary != c->golden->indices[b]) {
+    c->correct = false;
+    printf("boundary mismatch at %zu\n", b);
+    printf("  expected: %zu, got: %zu\n", c->golden->indices[b], boundary);
+  }
+  return true;
 }
 
 int main(int argc, char *argv[]) {
@@ -23,7 +40,6 @@ int main(int argc, char *argv[]) {
   bool ok = true;
   struct budouxc *model = NULL;
   struct budouxc_boundaries *boundaries_golden = NULL;
-  struct budouxc_boundaries *boundaries = NULL;
 
   // Initialize the model with the embedded pre-trained Japanese model.
   model = budouxc_init_embedded_ja(NULL, error);
@@ -56,30 +72,25 @@ int main(int argc, char *argv[]) {
   }
 
   // Parse the boundaries of the sentence using the model.
-  boundaries = budouxc_parse_boundaries_callback(model, get_char, &(size_t){0}, error);
-  if (!boundaries) {
+  struct context ctx = {
+      .golden = boundaries_golden,
+      .correct = true,
+  };
+  if (!budouxc_parse_boundaries_callback(model, get_char, add_boundary, &ctx)) {
     printf("budouxc_parse_boundaries_callback failed: %s\n", error);
     ok = false;
     goto cleanup;
   }
-
   // Compare the boundaries with the golden data.
-  if (boundaries->n != boundaries_golden->n) {
+  if (ctx.nb != boundaries_golden->n) {
     printf("number of boundaries mismatch\n");
-    printf("  expected: %zu, got: %zu\n", boundaries_golden->n, boundaries->n);
+    printf("  expected: %zu, got: %zu\n", boundaries_golden->n, ctx.nb);
     ok = false;
   }
-  for (size_t i = 0; i < boundaries_golden->n; ++i) {
-    if (boundaries->indices[i] != boundaries_golden->indices[i]) {
-      printf("boundary mismatch at %zu\n", i);
-      printf("  expected: %zu, got: %zu\n", boundaries_golden->indices[i], boundaries->indices[i]);
-      ok = false;
-    }
+  if (!ctx.correct) {
+    ok = false;
   }
 cleanup:
-  if (boundaries) {
-    budouxc_boundaries_destroy(model, boundaries);
-  }
   if (boundaries_golden) {
     budouxc_boundaries_destroy(model, boundaries_golden);
   }

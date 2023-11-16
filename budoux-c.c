@@ -1,6 +1,5 @@
 #include "budoux-c.h"
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include <stdio.h>
@@ -504,20 +503,15 @@ failed:
 IMPL_PARSE(16);
 IMPL_PARSE(32);
 
-struct budouxc_boundaries *BUDOUXC_DECLSPEC
-budouxc_parse_boundaries_callback(struct budouxc *const model,
-                                  char32_t (*get_char)(struct budouxc_boundaries const *boundaries, void *userdata),
-                                  void *userdata,
-                                  char *error128) {
-  size_t *r = NULL;
-  size_t r_len = 0;
-  size_t r_cap = 0;
-
+bool BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const model,
+                                                        char32_t (*get_char)(void *userdata),
+                                                        bool (*add_boundary)(size_t const boundary, void *userdata),
+                                                        void *userdata) {
   char32_t buffer[8] = {0};
   size_t sentence_len = SIZE_MAX;
 
   for (size_t i = 0; i < 6; ++i) {
-    char32_t const ch = get_char(&(struct budouxc_boundaries){.indices = r, .n = r_len}, userdata);
+    char32_t const ch = get_char(userdata);
     buffer[i] = ch;
     if (ch == 0) {
       sentence_len = i + 1;
@@ -528,7 +522,7 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
   FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
   for (size_t i = 1; i < sentence_len; ++i) {
     if (i + 5 < sentence_len) {
-      char32_t const ch = get_char(&(struct budouxc_boundaries){.indices = r, .n = r_len}, userdata);
+      char32_t const ch = get_char(userdata);
       buffer[(i + 5) & 7] = ch;
       if (ch == 0) {
         sentence_len = i + 5;
@@ -575,29 +569,12 @@ budouxc_parse_boundaries_callback(struct budouxc *const model,
     }
 
     if (base_score + (FLOAT_TYPE)(score) > 0) {
-      if (r_len == r_cap) {
-        size_t const newcap = r_cap ? r_cap * 2 : 16;
-        size_t *newbuf = model->allocators.fn_realloc(
-            r, newcap * sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);
-        if (!newbuf) {
-          strcpy(error128, "Out of memory");
-          goto failed;
-        }
-        r = newbuf;
-        r_cap = newcap;
+      if (!add_boundary(i, userdata)) {
+        return false;
       }
-      r[r_len++] = i;
     }
   }
-  struct budouxc_boundaries *ret = (void *)(r + r_cap);
-  ret->indices = r;
-  ret->n = r_len;
-  return ret;
-failed:
-  if (r) {
-    model->allocators.fn_free(r, model->allocators.user_data);
-  }
-  return NULL;
+  return true;
 }
 
 struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct budouxc *const model,
