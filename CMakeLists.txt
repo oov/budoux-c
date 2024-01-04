@@ -40,12 +40,14 @@ add_custom_target(generate_budoux_models SOURCES
   ${budoux_SOURCE_DIR}/budoux/models/ja.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hans.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hant.json
+  ${budoux_SOURCE_DIR}/budoux/models/th.json
 )
 add_custom_command(
 OUTPUT
   ${embedded_models}/ja.c
   ${embedded_models}/zh_hans.c
   ${embedded_models}/zh_hant.c
+  ${embedded_models}/th.c
 COMMAND
   ${CMAKE_COMMAND} -E make_directory ${embedded_models}
 COMMAND
@@ -54,10 +56,13 @@ COMMAND
   xxd -i zh-hans.json > ${embedded_models}/zh_hans.c
 COMMAND
   xxd -i zh-hant.json > ${embedded_models}/zh_hant.c
+COMMAND
+  xxd -i th.json > ${embedded_models}/th.c
 DEPENDS
   ${budoux_SOURCE_DIR}/budoux/models/ja.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hans.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hant.json
+  ${budoux_SOURCE_DIR}/budoux/models/th.json
 WORKING_DIRECTORY
   ${budoux_SOURCE_DIR}/budoux/models
 )
@@ -66,7 +71,7 @@ add_library(budouxc
   budoux-c.c
   ${json-parser_SOURCE_DIR}/json.c
   ${hashmap-c_SOURCE_DIR}/hashmap.c
-  $<$<BOOL:${BUDOUXC_EMBED_MODELS}>:${embedded_models}/ja.c ${embedded_models}/zh_hans.c ${embedded_models}/zh_hant.c>
+  $<$<BOOL:${BUDOUXC_EMBED_MODELS}>:${embedded_models}/ja.c ${embedded_models}/zh_hans.c ${embedded_models}/zh_hant.c ${embedded_models}/th.c>
 )
 target_include_directories(budouxc PRIVATE ${json-parser_SOURCE_DIR} ${hashmap-c_SOURCE_DIR})
 target_compile_definitions(budouxc PRIVATE $<$<NOT:$<BOOL:${BUDOUXC_EMBED_MODELS}>>:BUDOUXC_NO_EMBEDDED_MODELS> $<$<STREQUAL:$<TARGET_PROPERTY:budouxc,TYPE>,SHARED_LIBRARY>:BUDOUXC_SHARED> BUDOUXC_EXPORT)

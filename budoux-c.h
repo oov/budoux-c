@@ -79,6 +79,19 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hans(struct budouxc_al
 struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hant(struct budouxc_allocators const *const allocators,
                                                                char *error128);
 
+/**
+ * @brief Initializes a budoux model with the embedded Thai model.
+ *
+ * @param allocators Pointer to the struct containing the memory allocation functions to be used. If NULL, default
+ * implementation will be used.
+ * @param error128 Pointer to a buffer of at least 128 bytes to store error messages in case of failure.
+ * @return Pointer to the initialized budoux model, or NULL if initialization failed.
+ *
+ * @see budouxc_init
+ */
+struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_th(struct budouxc_allocators const *const allocators,
+                                                          char *error128);
+
 #endif // BUDOUXC_NO_EMBEDDED_MODELS
 
 /**

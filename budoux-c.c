@@ -650,4 +650,11 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_zh_hant(struct budouxc_al
   return budouxc_init(allocators, (char const *)zh_hant_json, (size_t)zh_hant_json_len, error128);
 }
 
+struct budouxc *BUDOUXC_DECLSPEC budouxc_init_embedded_th(struct budouxc_allocators const *const allocators,
+                                                          char *error128) {
+  extern unsigned char th_json[];
+  extern unsigned int th_json_len;
+  return budouxc_init(allocators, (char const *)th_json, (size_t)th_json_len, error128);
+}
+
 #endif // BUDOUXC_NO_EMBEDDED_MODELS
