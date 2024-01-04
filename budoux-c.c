@@ -510,7 +510,7 @@ bool BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const mo
   char32_t buffer[8] = {0};
   size_t sentence_len = SIZE_MAX;
 
-  for (size_t i = 0; i < 6; ++i) {
+  for (size_t i = 0; i < 3; ++i) {
     char32_t const ch = get_char(userdata);
     buffer[i] = ch;
     if (ch == 0) {
@@ -520,15 +520,15 @@ bool BUDOUXC_DECLSPEC budouxc_parse_boundaries_callback(struct budouxc *const mo
   }
 
   FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);
-  for (size_t i = 1; i < sentence_len; ++i) {
-    if (i + 5 < sentence_len) {
+  for (size_t i = 0; i < sentence_len; ++i) {
+    if (i + 3 < sentence_len) {
       char32_t const ch = get_char(userdata);
-      buffer[(i + 5) & 7] = ch;
+      buffer[(i + 3) & 7] = ch;
       if (ch == 0) {
-        sentence_len = i + 5;
+        sentence_len = i + 3;
       }
     } else {
-      buffer[(i + 5) & 7] = 0;
+      buffer[(i + 3) & 7] = 0;
     }
 
     int32_t score = 0;

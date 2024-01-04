@@ -32,9 +32,9 @@ int main(int argc, char *argv[]) {
   // Print the sentence with "|" characters between each word.
   // The following text will be output.
   //
-  // 私は|その人を|常に|先生と|呼んでいた。|
-  // だから|ここでも|ただ|先生と|書くだけで|本名は|打ち明けない。|
-  // これは|世間を|憚かる|遠慮と|いう|よりも、|その方が|私に|とって|自然だからである。
+  // 私は|その|人を|常に|先生と|呼んでいた。|
+  // だから|ここでも|ただ先生と|書くだけで|本名は|打ち明けない。|
+  // これは|世間を|憚かる|遠慮と|いうよりも、|その方が|私に|とって|自然だからである。
   size_t pos = 0;
   char buf[256];
   for (size_t i = 0; i < boundaries->n; ++i) {

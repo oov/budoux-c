@@ -20,7 +20,7 @@ include(FetchContent)
 FetchContent_Declare(
   budoux
   GIT_REPOSITORY https://github.com/google/budoux
-  GIT_TAG 0a0a8ce8791d6f99b328d9640eefe4a5f6d1f972
+  GIT_TAG 8df9b5d936a14f37a9ea45d22f64ee5b7c16fc8a
 )
 FetchContent_Declare(
   json-parser

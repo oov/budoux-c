@@ -1,5 +1,6 @@
 #include "budoux-c.h"
 
+#include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,9 +13,17 @@ static wchar_t const sentence[] = L"私はその人を常に先生と呼んで�
 struct context {
   size_t nch;
   size_t nb;
+  size_t prev_boundary;
   struct budouxc_boundaries *golden;
   bool correct;
 };
+
+static void print_word(struct context *const c, size_t const boundary) {
+  wchar_t buf[32];
+  wcsncpy(buf, sentence + c->prev_boundary, boundary - c->prev_boundary);
+  buf[boundary - c->prev_boundary] = L'\0';
+  printf("word: %ls\n", buf);
+}
 
 static char32_t get_char(void *userdata) {
   struct context *const c = userdata;
@@ -24,17 +33,24 @@ static char32_t get_char(void *userdata) {
 static bool add_boundary(size_t const boundary, void *userdata) {
   struct context *const c = userdata;
   size_t const b = c->nb++;
+  print_word(c, boundary);
   if (b < c->golden->n && boundary != c->golden->indices[b]) {
     c->correct = false;
     printf("boundary mismatch at %zu\n", b);
     printf("  expected: %zu, got: %zu\n", c->golden->indices[b], boundary);
   }
+  c->prev_boundary = boundary;
   return true;
 }
 
 int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
+
+  if (setlocale(LC_ALL, "") == NULL) {
+    printf("setlocale failed.\n");
+    return 1;
+  }
 
   char error[128] = {0};
   bool ok = true;
@@ -81,6 +97,7 @@ int main(int argc, char *argv[]) {
     ok = false;
     goto cleanup;
   }
+  print_word(&ctx, wcslen(sentence));
   // Compare the boundaries with the golden data.
   if (ctx.nb != boundaries_golden->n) {
     printf("number of boundaries mismatch\n");
