@@ -16,6 +16,8 @@ jobs:
       - name: setup
         run: |
           sudo apt install -y cmake ninja-build clang clang-format lld vim
+          sudo locale-gen ja_JP
+          sudo update-locale LANG=ja_JP.UTF-8
       - name: Build
         run: |
           mkdir -p build
