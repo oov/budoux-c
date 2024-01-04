@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
-  if (setlocale(LC_ALL, "") == NULL) {
+  if (setlocale(LC_ALL, "ja_JP.UTF-8") == NULL) {
     printf("setlocale failed.\n");
     return 1;
   }
