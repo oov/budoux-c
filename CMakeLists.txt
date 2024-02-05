@@ -35,7 +35,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(budoux json-parser hashmap-c)
 
 set(embedded_models ${CMAKE_CURRENT_BINARY_DIR}/embedded_models)
-find_program(XXD xxd REQUIRED CMAKE_FIND_ROOT_PATH_BOTH)
+find_program(XXD xxd CMAKE_FIND_ROOT_PATH_BOTH)
+if(NOT XXD)
+  find_program(XXD_BUSYBOX busybox CMAKE_FIND_ROOT_PATH_BOTH)
+  if(XXD_BUSYBOX)
+    set(XXD "${XXD_BUSYBOX};xxd")
+  else()
+    message(FATAL_ERROR "xxd not found")
+  endif()
+endif()
 add_custom_target(generate_budoux_models SOURCES
   ${budoux_SOURCE_DIR}/budoux/models/ja.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hans.json
@@ -51,13 +59,13 @@ OUTPUT
 COMMAND
   ${CMAKE_COMMAND} -E make_directory ${embedded_models}
 COMMAND
-  xxd -i ja.json > ${embedded_models}/ja.c
+  ${XXD} -i ja.json > ${embedded_models}/ja.c
 COMMAND
-  xxd -i zh-hans.json > ${embedded_models}/zh_hans.c
+  ${XXD} -i zh-hans.json > ${embedded_models}/zh_hans.c
 COMMAND
-  xxd -i zh-hant.json > ${embedded_models}/zh_hant.c
+  ${XXD} -i zh-hant.json > ${embedded_models}/zh_hant.c
 COMMAND
-  xxd -i th.json > ${embedded_models}/th.c
+  ${XXD} -i th.json > ${embedded_models}/th.c
 DEPENDS
   ${budoux_SOURCE_DIR}/budoux/models/ja.json
   ${budoux_SOURCE_DIR}/budoux/models/zh-hans.json
