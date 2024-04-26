@@ -10,17 +10,9 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: setup
-        run: |
-          sudo apt install -y cmake ninja-build clang clang-format lld vim
-          sudo locale-gen ja_JP
-          sudo update-locale LANG=ja_JP.UTF-8
       - name: Build
         run: |
-          mkdir -p build
-          cd build
-          rm -f CmakeCache.txt && cmake -S .. -B . --preset default -DFORMAT_SOURCES=ON -DCMAKE_INSTALL_PREFIX=local && \
-          cmake --build . && ctest --output-on-failure
+          sudo docker run --net host -i -v .:/root/budoux-c -w /root/budoux-c ubuntu:22.04 /bin/bash -c 'apt update && apt install -y git cmake ninja-build clang clang-format lld vim language-pack-ja && locale-gen ja_JP && update-locale LANG=ja_JP.UTF-8 && mkdir -p build && cmake -S . -B build --preset default -DFORMAT_SOURCES=ON -DCMAKE_INSTALL_PREFIX=local && cmake --build build && ctest -test-dir build --output-on-failure --output-junit testlog.xml'

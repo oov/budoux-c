@@ -100,6 +100,7 @@ add_dependencies(budouxc generate_budoux_models)
 
 set(is_clang "$<C_COMPILER_ID:Clang>")
 set(v16_or_later "$<VERSION_GREATER_EQUAL:$<C_COMPILER_VERSION>,16>")
+set(v18_or_later "$<VERSION_GREATER_EQUAL:$<C_COMPILER_VERSION>,18>")
 set(compile_options
 -Wall
 -Wextra
@@ -110,6 +111,7 @@ set(compile_options
 -pedantic-errors
 -Wno-declaration-after-statement
 -Wno-padded
+$<$<AND:${is_clang},${v18_or_later}>:-Wno-switch-default>
 $<$<AND:${is_clang},${v16_or_later}>:-Wno-unsafe-buffer-usage>
 )
 set_source_files_properties(budoux-c.c example.c PROPERTIES COMPILE_OPTIONS "${compile_options}")
