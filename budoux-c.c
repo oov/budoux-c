@@ -487,6 +487,16 @@ failed:
         r[r_len++] = i;                                                                                                \
       }                                                                                                                \
     }                                                                                                                  \
+    if (!r) {                                                                                                          \
+      /* No boundary was found: allocate the result struct after an empty indices array. */                            \
+      r = (size_t *)model->allocators.fn_realloc(                                                                      \
+          NULL, sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);                      \
+      if (!r) {                                                                                                        \
+        strcpy(error128, "Out of memory");                                                                             \
+        goto failed;                                                                                                   \
+      }                                                                                                                \
+      r_cap = 1;                                                                                                       \
+    }                                                                                                                  \
     ret = (struct budouxc_boundaries *)(r + r_cap);                                                                    \
     ret->indices = r;                                                                                                  \
     ret->n = r_len;                                                                                                    \
