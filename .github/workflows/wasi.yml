@@ -10,12 +10,12 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: setup
         run: |
-          sudo apt install -y git wget tar cmake ninja-build clang-format xz-utils vim
+          sudo apt install -y git wget tar cmake ninja-build clang-format xz-utils vim xxd
       - name: Build
         run: |
           mkdir -p build/tools
