@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
   char error[128] = {0};
   struct budouxc *model = NULL;
   struct budouxc_boundaries *boundaries = NULL;
+  size_t pos = 0;
 
   // Initialize the model with the embedded pre-trained Japanese model.
   model = budouxc_init_embedded_ja(NULL, error);
@@ -41,7 +42,6 @@ int main(int argc, char *argv[]) {
   // 私は|その|人を|常に|先生と|呼んでいた。|
   // だから|ここでも|ただ先生と|書くだけで|本名は|打ち明けない。|
   // これは|世間を|憚かる|遠慮と|いうよりも、|その方が|私に|とって|自然だからである。
-  size_t pos = 0;
   char buf[256];
   for (size_t i = 0; i < boundaries->n; ++i) {
     size_t const len = boundaries->indices[i] - pos;

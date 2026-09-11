@@ -96,17 +96,17 @@ utf8to32(char32_t *dest, size_t *byte_indices, size_t const dest_len, char const
 // Allocator wrappers ----
 
 static void *hm_realloc(void *ptr, size_t size, void *user_data) {
-  struct budouxc_allocators const *const allocators = user_data;
+  struct budouxc_allocators const *const allocators = (struct budouxc_allocators const *)user_data;
   return allocators->fn_realloc(ptr, size, allocators->user_data);
 }
 
 static void hm_free(void *ptr, void *user_data) {
-  struct budouxc_allocators const *const allocators = user_data;
+  struct budouxc_allocators const *const allocators = (struct budouxc_allocators const *)user_data;
   allocators->fn_free(ptr, allocators->user_data);
 }
 
 static void *json_alloc(size_t size, int zero, void *user_data) {
-  struct budouxc_allocators const *const allocators = user_data;
+  struct budouxc_allocators const *const allocators = (struct budouxc_allocators const *)user_data;
   void *ptr = allocators->fn_realloc(NULL, size, allocators->user_data);
   if (ptr && zero) {
     memset(ptr, 0, size);
@@ -115,7 +115,7 @@ static void *json_alloc(size_t size, int zero, void *user_data) {
 }
 
 static void json_free(void *ptr, void *user_data) {
-  struct budouxc_allocators const *const allocators = user_data;
+  struct budouxc_allocators const *const allocators = (struct budouxc_allocators const *)user_data;
   allocators->fn_free(ptr, allocators->user_data);
 }
 
@@ -181,13 +181,13 @@ struct budouxc {
 #define IMPL_BUILD_MAP(typ)                                                                                            \
   static int typ##_compare(void const *const a, void const *const b, void *const udata) {                              \
     (void)udata;                                                                                                       \
-    struct typ const *const aa = a;                                                                                    \
-    struct typ const *const bb = b;                                                                                    \
+    struct typ const *const aa = (struct typ const *)a;                                                                \
+    struct typ const *const bb = (struct typ const *)b;                                                                \
     return memcmp(&aa->key, &bb->key, sizeof(aa->key));                                                                \
   }                                                                                                                    \
   static uint64_t typ##_hash(void const *const item, uint64_t const seed0, uint64_t const seed1, void *const udata) {  \
     (void)udata;                                                                                                       \
-    struct typ const *const i = item;                                                                                  \
+    struct typ const *const i = (struct typ const *)item;                                                              \
     return hashmap_sip(&i->key, sizeof(i->key), seed0, seed1);                                                         \
   }                                                                                                                    \
   static struct hashmap *build_##typ##_map(                                                                            \
@@ -256,6 +256,7 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init(struct budouxc_allocators const *c
                                               char *error128) {
   struct budouxc *model = NULL;
   json_value *root = NULL;
+  int32_t sum = 0;
 
   struct budouxc_allocators a = allocators ? *allocators
                                            : (struct budouxc_allocators){
@@ -273,7 +274,7 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init(struct budouxc_allocators const *c
     return NULL;
   }
 
-  model = a.fn_realloc(NULL, sizeof(struct budouxc), a.user_data);
+  model = (struct budouxc *)a.fn_realloc(NULL, sizeof(struct budouxc), a.user_data);
   if (!model) {
     strcpy(error128, "Out of memory");
     goto failed;
@@ -357,12 +358,11 @@ struct budouxc *BUDOUXC_DECLSPEC budouxc_init(struct budouxc_allocators const *c
     size_t iter = 0;                                                                                                   \
     void *item = NULL;                                                                                                 \
     while (hashmap_iter(map, &iter, &item)) {                                                                          \
-      struct typ const *const j = item;                                                                                \
+      struct typ const *const j = (struct typ const *)item;                                                            \
       sum += j->value;                                                                                                 \
     }                                                                                                                  \
   } while (0)
 
-  int32_t sum = 0;
   for (size_t i = 0; i < ARRAY_SIZE(model->uni); ++i) {
     if (!model->uni[i]) {
       sprintf(error128, "Missing key UW%zu", i + 1);
@@ -402,14 +402,15 @@ failed:
 #define IMPL_PARSE(bits)                                                                                               \
   static inline void get_unigram_score_char##bits(                                                                     \
       int32_t *score, struct hashmap *const map, char##bits##_t const k0) {                                            \
-    struct unigram const *const item = hashmap_get(map, &(struct unigram const){.key = {k0}});                         \
+    struct unigram const *const item = (struct unigram const *)hashmap_get(map, &(struct unigram const){.key = {k0}}); \
     if (item) {                                                                                                        \
       *score += item->value;                                                                                           \
     }                                                                                                                  \
   }                                                                                                                    \
   static inline void get_bigram_score_char##bits(                                                                      \
       int32_t *score, struct hashmap *const map, char##bits##_t const k0, char##bits##_t const k1) {                   \
-    struct bigram const *const item = hashmap_get(map, &(struct bigram const){.key = {k0, k1}});                       \
+    struct bigram const *const item =                                                                                  \
+        (struct bigram const *)hashmap_get(map, &(struct bigram const){.key = {k0, k1}});                              \
     if (item) {                                                                                                        \
       *score += item->value;                                                                                           \
     }                                                                                                                  \
@@ -419,7 +420,8 @@ failed:
                                                   char##bits##_t const k0,                                             \
                                                   char##bits##_t const k1,                                             \
                                                   char##bits##_t const k2) {                                           \
-    struct trigram const *const item = hashmap_get(map, &(struct trigram const){.key = {k0, k1, k2}});                 \
+    struct trigram const *const item =                                                                                 \
+        (struct trigram const *)hashmap_get(map, &(struct trigram const){.key = {k0, k1, k2}});                        \
     if (item) {                                                                                                        \
       *score += item->value;                                                                                           \
     }                                                                                                                  \
@@ -429,6 +431,7 @@ failed:
     size_t *r = NULL;                                                                                                  \
     size_t r_len = 0;                                                                                                  \
     size_t r_cap = 0;                                                                                                  \
+    struct budouxc_boundaries *ret = NULL;                                                                             \
                                                                                                                        \
     FLOAT_TYPE const base_score = (FLOAT_TYPE)(model->sum) * (FLOAT_TYPE)(-0.5);                                       \
     for (size_t i = 1; i < sentence_len; ++i) {                                                                        \
@@ -472,7 +475,7 @@ failed:
       if (base_score + (FLOAT_TYPE)(score) > 0) {                                                                      \
         if (r_len == r_cap) {                                                                                          \
           size_t const newcap = r_cap ? r_cap * 2 : 16;                                                                \
-          size_t *newbuf = model->allocators.fn_realloc(                                                               \
+          size_t *newbuf = (size_t *)model->allocators.fn_realloc(                                                     \
               r, newcap * sizeof(size_t) + sizeof(struct budouxc_boundaries), model->allocators.user_data);            \
           if (!newbuf) {                                                                                               \
             strcpy(error128, "Out of memory");                                                                         \
@@ -484,7 +487,7 @@ failed:
         r[r_len++] = i;                                                                                                \
       }                                                                                                                \
     }                                                                                                                  \
-    struct budouxc_boundaries *ret = (void *)(r + r_cap);                                                              \
+    ret = (struct budouxc_boundaries *)(r + r_cap);                                                                    \
     ret->indices = r;                                                                                                  \
     ret->n = r_len;                                                                                                    \
     return ret;                                                                                                        \
@@ -583,18 +586,21 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
                                                                           char *error128) {
   char32_t *temp = NULL;
   struct budouxc_boundaries *boundaries = NULL;
+  size_t *utf8_indices = NULL;
   size_t const u32chars = utf8to32(NULL, NULL, 0, sentence, sentence_len);
   if (!u32chars) {
     strcpy(error128, "Broken input");
     goto failed;
   }
-  temp =
-      model->allocators.fn_realloc(NULL, u32chars * (sizeof(char32_t) + sizeof(size_t)), model->allocators.user_data);
-  if (!temp) {
+  // Allocate the size_t array first so that the allocator's alignment guarantee covers it,
+  // then place the char32_t array after it since it requires no stronger alignment.
+  utf8_indices = (size_t *)model->allocators.fn_realloc(
+      NULL, u32chars * (sizeof(size_t) + sizeof(char32_t)), model->allocators.user_data);
+  if (!utf8_indices) {
     strcpy(error128, "Out of memory");
     goto failed;
   }
-  size_t *const utf8_indices = (void *)(temp + u32chars);
+  temp = (char32_t *)(utf8_indices + u32chars);
   if (!utf8to32(temp, utf8_indices, u32chars, sentence, sentence_len)) {
     strcpy(error128, "Broken input");
     goto failed;
@@ -607,14 +613,14 @@ struct budouxc_boundaries *BUDOUXC_DECLSPEC budouxc_parse_boundaries_utf8(struct
   for (size_t i = 0, len = boundaries->n; i < len; ++i) {
     boundaries->indices[i] = utf8_indices[boundaries->indices[i]];
   }
-  model->allocators.fn_free(temp, model->allocators.user_data);
+  model->allocators.fn_free(utf8_indices, model->allocators.user_data);
   return boundaries;
 failed:
   if (boundaries) {
     budouxc_boundaries_destroy(model, boundaries);
   }
-  if (temp) {
-    model->allocators.fn_free(temp, model->allocators.user_data);
+  if (utf8_indices) {
+    model->allocators.fn_free(utf8_indices, model->allocators.user_data);
   }
   return NULL;
 }
